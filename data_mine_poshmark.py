@@ -10,8 +10,9 @@ start_time = time.time()
 df = pd.read_excel(r"C:\Users\mxr29\Desktop\Computer\APA_bou.xlsx", sheet_name='Sheet1')
 
 #was xpath list but now Key phrase list
-xpath_list = [ 'Accessories'
-               ,
+xpath_list = [ 'Accessories',
+          #comment goes here
+          'Test',
           'Bags',
           'Dresses',
           'Intimates',
