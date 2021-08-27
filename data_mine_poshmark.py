@@ -4,13 +4,17 @@ import pandas as pd
 import numpy as np
 import time
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 start_time = time.time()
 
 #read in dataset to get brand keywords
 df = pd.read_excel(r"C:\Users\mxr29\Desktop\Computer\APA_bou.xlsx", sheet_name='Sheet1')
 
 #was xpath list but now Key phrase list
-xpath_list = [ 'Accessories',
+xpath_list = [ 'Accessories'
+               ,
           'Bags',
           'Dresses',
           'Intimates',
@@ -80,8 +84,15 @@ count_list =[
     Swim_c,Tops_c,Skincare_c,Hair_c,Bath_c
 ]
 
+
+#open headless browser for automation then sleep to load
+options = Options()
+options.headless = True
+driver = webdriver.Firefox(options=options, executable_path=r'C:\Users\mxr29\Desktop\Computer\Drivers\geckodriver.exe')
+driver.get("https://poshmark.com/search?query= ")
+
 #first loop iterates through each brand name
-for p in range(480,len(df)):
+for p in range(1502,len(df)):
 
 
     # grab and clean brand name
@@ -95,29 +106,21 @@ for p in range(480,len(df)):
 
     #iterate through each of the key phrase for item type
     for y in range(len(xpath_list)):
+
         # bool variable to check if type of brand is present
         type_bool = True
 
-        #open headless browser for automation then sleep to load
-        options = Options()
-        options.headless = True
-        driver = webdriver.Firefox(options=options,executable_path=r'C:\Users\mxr29\Desktop\Computer\Drivers\geckodriver.exe')
-        driver.get("https://poshmark.com/search?query= ")
-        sleep(3)
-
         #find the brand search bar,input brand,click search, and sleep to load
-        brand_enter = driver.find_element_by_xpath(
-            '//*[@id="searchInput"]')
+        brand_enter=WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="searchInput"]')))
         brand_enter.clear()
         brand_enter.send_keys(str(brand))
         search = driver.find_element_by_xpath('/html/body/div[1]/header/nav[1]/div/div[1]/form/div[1]/button')
         search.click()
-        sleep(3)
 
         #slect the women's clothing group and click
-        women = driver.find_element_by_xpath('/html/body/div[1]/main/div[2]/div/div/div/div[2]/nav/div/div[1]/div/div[2]/ul/li[2]/a')
+        women = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/main/div[2]/div/div/div/div[2]/nav/div/div[1]/div/div[2]/ul/li[2]/a')))
         women.click()
-        sleep(3)
+
 
         #intiliase M value for keep, Price, and Count for Brand Type
         keep = 100000
@@ -126,6 +129,7 @@ for p in range(480,len(df)):
 
         #Since the brand types can be in dynamic numeric positions this loop find the xpath numeric position for the current brand
         #and keeps that number so we can get the correct xpath.
+        sleep(2)
         for i in range(1, 19):
 
             try:
@@ -145,11 +149,12 @@ for p in range(480,len(df)):
         # this segment trys to click the element specified on the indexed found in the previous search loop
         # if fails sets type bool to false which skips the price searching portion
         try:
+
             enter1 = driver.find_element_by_xpath(
                 '/html/body/div[1]/main/div[2]/div/div/div/div[2]/nav/div/div[1]/div/div[2]/ul/li[2]/ul/li[' + str(
                     keep) + ']/a')
             enter1.click()
-            sleep(3)
+
         except:
             type_bool = False
 
@@ -164,8 +169,10 @@ for p in range(480,len(df)):
                     page_bool = False
 
                 #grabs all prices and names on current page
-                prices = driver.find_elements_by_css_selector(".p--t--1.fw--bold")
-                name  = driver.find_elements_by_css_selector(".tile__title.tc--b")
+                prices = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.p--t--1.fw--bold')))
+                
+                name = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.tile__title.tc--b')))
+                
 
                 #loops through all elements on page
                 for i in range(len(prices)):
@@ -185,7 +192,7 @@ for p in range(480,len(df)):
                 try:
                     box = driver.find_element_by_xpath('/html/body/div[1]/main/div[2]/div/div/div/div[2]/section/div[3]/div[49]/button[2]')
                     box.click()
-                    sleep(3)
+
                     z+=1
                 except:
                     page_bool = False
@@ -201,7 +208,8 @@ for p in range(480,len(df)):
             price_list[y].append('X')
             count_list[y].append(0)
 
-        driver.quit()
+        #driver.quit()
+        driver.get("https://poshmark.com/search?query= ")
 
     #after every brand loop remake and save dataframe.
     # Kind of inefficient but that way I don't lose the whole data set half way through if faced with an error
@@ -215,4 +223,4 @@ for p in range(480,len(df)):
         df_out[xpath_list[i]]=price_list[i]
     for i in range(len(xpath_list)):
         df_out[str(xpath_list[i])+' Count']=count_list[i]
-    df_out.to_csv(r'C:\Users\mxr29\Desktop\Computer\poshtest_480_X.csv')
+    df_out.to_csv(r'C:\Users\mxr29\Desktop\Computer\poshtest_1502_X.csv')
