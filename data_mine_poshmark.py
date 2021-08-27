@@ -11,8 +11,6 @@ df = pd.read_excel(r"C:\Users\mxr29\Desktop\Computer\APA_bou.xlsx", sheet_name='
 
 #was xpath list but now Key phrase list
 xpath_list = [ 'Accessories',
-          #comment goes here
-          'Test',
           'Bags',
           'Dresses',
           'Intimates',
